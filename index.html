@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NICK // JARVIS</title>
+
+<style>
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+    -webkit-tap-highlight-color:transparent;
+}
+
+body{
+    width:100%;
+    height:100vh;
+    overflow:hidden;
+    background:#02070a;
+    color:#00eaff;
+    font-family:Arial,Helvetica,sans-serif;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+
+.jarvis{
+    width:100%;
+    max-width:600px;
+    height:100vh;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding:20px;
+}
+
+h1{
+    font-size:42px;
+    letter-spacing:10px;
+    margin-bottom:8px;
+    text-shadow:0 0 20px #00eaff;
+}
+
+.subtitle{
+    color:#6c8990;
+    font-size:13px;
+    letter-spacing:3px;
+    margin-bottom:35px;
+}
+
+.orb{
+    width:180px;
+    height:180px;
+    border:3px solid #00eaff;
+    border-radius:50%;
+    position:relative;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    box-shadow:
+        0 0 20px #00eaff,
+        inset 0 0 30px #00eaff;
+    animation:pulse 2s infinite;
+    margin-bottom:30px;
+}
+
+.orb::before,
+.orb::after{
+    content:"";
+    position:absolute;
+    border:1px solid #00eaff;
+    border-radius:50%;
+}
+
+.orb::before{
+    width:135px;
+    height:135px;
+}
+
+.orb::after{
+    width:85px;
+    height:85px;
+}
+
+.orb-core{
+    width:35px;
+    height:35px;
+    border-radius:50%;
+    background:#00eaff;
+    box-shadow:0 0 30px #00eaff;
+    z-index:2;
+}
+
+@keyframes pulse{
+    0%,100%{
+        transform:scale(1);
+        box-shadow:0 0 20px #00eaff,inset 0 0 30px #00eaff;
+    }
+    50%{
+        transform:scale(1.04);
+        box-shadow:0 0 45px #00eaff,inset 0 0 45px #00eaff;
+    }
+}
+
+.status{
+    color:#aaa;
+    font-size:14px;
+    margin-bottom:20px;
+    min-height:20px;
+}
+
+.mic{
+    width:80px;
+    height:80px;
+    border-radius:50%;
+    border:2px solid #00eaff;
+    background:#071419;
+    color:#fff;
+    font-size:30px;
+    cursor:pointer;
+    box-shadow:0 0 15px #00eaff;
+    transition:.2s;
+}
+
+.mic:active{
+    transform:scale(.92);
+}
+
+.mic.listening{
+    background:#00eaff;
+    color:#001014;
+    box-shadow:0 0 40px #00eaff;
+}
+
+.output{
+    width:100%;
+    min-height:80px;
+    margin-top:25px;
+    padding:15px;
+    border:1px solid #073f49;
+    border-radius:12px;
+    color:#00eaff;
+    background:#031014;
+    font-size:15px;
+    line-height:1.5;
+}
+
+.user{
+    color:#777;
+    margin-bottom:8px;
+}
+
+.jarvisReply{
+    color:#00eaff;
+}
+
+.time{
+    position:absolute;
+    top:20px;
+    right:20px;
+    color:#45666d;
+    font-size:12px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="time" id="time">00:00:00</div>
+
+<div class="jarvis">
+
+    <h1>JARVIS</h1>
+
+    <div class="subtitle">PERSONAL AI SYSTEM</div>
+
+    <div class="orb">
+        <div class="orb-core"></div>
+    </div>
+
+    <div class="status" id="status">
+        SYSTEM READY
+    </div>
+
+    <button class="mic" id="micBtn">🎤</button>
+
+    <div class="output">
+        <div class="user" id="userText">
+            Say "Hello Jarvis"
+        </div>
+
+        <div class="jarvisReply" id="jarvisText">
+            Awaiting command...
+        </div>
+    </div>
+
+</div>
+
+<script>
+
+const micBtn = document.getElementById("micBtn");
+const statusText = document.getElementById("status");
+const userText = document.getElementById("userText");
+const jarvisText = document.getElementById("jarvisText");
+const timeText = document.getElementById("time");
+
+
+// CLOCK
+function updateClock(){
+    const now = new Date();
+
+    timeText.textContent =
+        now.toLocaleTimeString();
+}
+
+setInterval(updateClock,1000);
+updateClock();
+
+
+// SPEAK
+function jarvisSpeak(text){
+
+    if("speechSynthesis" in window){
+
+        speechSynthesis.cancel();
+
+        const speech =
+            new SpeechSynthesisUtterance(text);
+
+        speech.rate = 0.9;
+        speech.pitch = 0.8;
+        speech.volume = 1;
+
+        speechSynthesis.speak(speech);
+    }
+}
+  async function askJARVISAI(command) {
+
+    showMessage("Thinking...");
+    jarvisSpeak("Let me think.");
+
+    try {
+
+        const response = await fetch("YOUR_BACKEND_URL", {
+            method: "POST",
+
+            headers: {
+                "Content-Type": "application/json"
+            },
+
+            body: JSON.stringify({
+                message: command
+            })
+        });
+
+        const data = await response.json();
+
+        const reply =
+            data.reply || "I couldn't get a response.";
+
+        showMessage(reply);
+        jarvisSpeak(reply);
+
+    } catch (error) {
+
+        console.error("AI ERROR:", error);
+
+        const reply =
+            "AI connection failed.";
+
+        showMessage(reply);
+        jarvisSpeak(reply);
+    }
+  }
+
+
+// SHOW MESSAGE
+function processCommand(command) {
+
+    command = command.toLowerCase().trim();
+    let reply = "";
+
+    if (
+        command.includes("hello") ||
+        command.includes("hi") ||
+        command.includes("hey")
+    ) {
+        reply = "Hello Nick. JARVIS is online.";
+    }
+
+    // GOOGLE SEARCH
+    else if (
+    command.includes("search google for") ||
+    command.includes("search google")
+) {
+
+    let query = command
+        .replace("search google for", "")
+        .replace("search google", "")
+        .trim();
+
+    if (query) {
+        reply = "Searching Google for " + query;
+
+        showMessage(reply);
+        jarvisSpeak(reply);
+
+        window.location.href =
+            "https://www.google.com/search?q=" +
+            encodeURIComponent(query);
+
+        return;
+    }
+
+    reply = "What should I search on Google?";
+    }else if (
+    command.includes("youtube search") ||
+    command.includes("search youtube")
+) {
+
+    let query = command
+        .replace("youtube search", "")
+        .replace("search youtube", "")
+        .trim();
+
+    if (query) {
+        reply = "Searching YouTube for " + query;
+
+        showMessage(reply);
+        jarvisSpeak(reply);
+
+        window.location.href =
+            "https://www.youtube.com/results?search_query=" +
+            encodeURIComponent(query);
+
+        return;
+    }
+
+    reply = "What should I search on YouTube?";
+}else if (
+    command.includes("youtube search") ||
+    command.includes("search youtube")
+) {
+
+    let query = command
+        .replace("youtube search", "")
+        .replace("search youtube", "")
+        .trim();
+
+    if (query) {
+        reply = "Searching YouTube for " + query;
+
+        showMessage(reply);
+        jarvisSpeak(reply);
+
+        window.location.href =
+            "https://www.youtube.com/results?search_query=" +
+            encodeURIComponent(query);
+
+        return;
+    }
+
+    reply = "What should I search on YouTube?";
+      }
+
+else if (command.includes("search")) {
+
+    let query = command
+        .replace("search", "")
+        .trim();
+
+    if (query) {
+        reply = "Searching for " + query;
+
+        showMessage(reply);
+        jarvisSpeak(reply);
+
+        window.location.href =
+            "https://www.google.com/search?q=" +
+            encodeURIComponent(query);
+
+        return;
+    }
+
+    reply = "What should I search for?";
+}
+
+else if (command.includes("google")) {
+        let query = command
+            .replace("search", "")
+            .trim();
+
+        if (query) {
+            reply = "Searching for " + query;
+
+            showMessage(reply);
+            jarvisSpeak(reply);
+
+            window.location.href =
+                "https://www.google.com/search?q=" +
+                encodeURIComponent(query);
+
+            return;
+        }
+
+        reply = "What should I search for?";
+    }
+
+    else if (command.includes("google")) {
+        window.location.href = "https://www.google.com";
+        reply = "Opening Google.";
+    }
+
+    else if (command.includes("youtube")) {
+        window.location.href = "https://www.youtube.com";
+        reply = "Opening YouTube.";
+    }
+
+      else if (command.includes("open instagram")) {
+
+    window.location.href = "https://www.instagram.com";
+    reply = "Opening Instagram.";
+
+      }
+        else if (command.includes("open whatsapp")) {
+
+    window.location.href = "https://web.whatsapp.com";
+    reply = "Opening WhatsApp.";
+
+        }
+          else if (command.includes("open my instagram")) {
+
+    window.location.href = "https://www.instagram.com/";
+    reply = "Opening your Instagram.";
+
+          }
+            else if (command.includes("open free fire")) {
+
+    window.location.href = "https://ff.garena.com/";
+    reply = "Opening Free Fire.";
+
+            }
+              else if (command.includes("open spotify")) {
+
+    window.location.href = "https://open.spotify.com";
+    reply = "Opening Spotify.";
+
+              }
+                else if (command.includes("open chrome")) {
+
+    window.location.href = "https://www.google.com/chrome/";
+    reply = "Opening Chrome.";
+
+  }
+                  else if (command.includes("open facebook")) {
+
+    window.location.href = "https://www.facebook.com";
+    reply = "Opening Facebook.";
+
+                  }
+                    else if (command.includes("open telegram")) {
+
+    window.location.href = "https://web.telegram.org";
+    reply = "Opening Telegram.";
+
+                    }
+                      else if (command.includes("open maps")) {
+
+    window.location.href = "https://www.google.com/maps";
+    reply = "Opening Google Maps.";
+
+                      }
+                        else if (command.includes("open gmail")) {
+
+    window.location.href = "https://mail.google.com";
+    reply = "Opening Gmail.";
+
+                        }
+                          else if (command.includes("open discord")) {
+
+    window.location.href = "https://discord.com/app";
+    reply = "Opening Discord.";
+
+                          }
+                            else if (
+    command.includes("open x") ||
+    command.includes("open twitter")
+) {
+
+    window.location.href = "https://x.com";
+    reply = "Opening X.";
+
+       }
+                              else if (command.includes("open snapchat")) {
+
+    window.location.href = "https://www.snapchat.com";
+    reply = "Opening Snapchat.";
+
+                              }
+                                else if (command.includes("open reddit")) {
+
+    window.location.href = "https://www.reddit.com";
+    reply = "Opening Reddit.";
+
+                                }
+                                  else if (command.includes("open netflix")) {
+
+    window.location.href = "https://www.netflix.com";
+    reply = "Opening Netflix.";
+
+}
+                                    else if (command.includes("open pinterest")) {
+
+    window.location.href = "https://www.pinterest.com";
+    reply = "Opening Pinterest.";
+
+                                    }
+                                      else if (command.includes("open chatgpt")) {
+
+    window.location.href = "https://chatgpt.com";
+    reply = "Opening ChatGPT.";
+
+                                      }
+                                        else if (command.includes("open drive")) {
+
+    window.location.href = "https://drive.google.com";
+    reply = "Opening Google Drive.";
+
+                                        }
+                                          else if (command.includes("open photos")) {
+
+    window.location.href = "https://photos.google.com";
+    reply = "Opening Google Photos.";
+
+                                          }
+                                            else if (command.includes("open calendar")) {
+
+    window.location.href = "https://calendar.google.com";
+    reply = "Opening Google Calendar.";
+
+                                            }
+                                              else if (command.includes("open keep")) {
+
+    window.location.href = "https://keep.google.com";
+    reply = "Opening Google Keep.";
+
+                                              }
+                                                else if (command.includes("open meet")) {
+
+    window.location.href = "https://meet.google.com";
+    reply = "Opening Google Meet.";
+
+                                                }
+                                                  else if (command.includes("open contacts")) {
+
+    window.location.href = "https://contacts.google.com";
+    reply = "Opening Google Contacts.";
+
+                                                  }
+                                                    else if (command.includes("open translate")) {
+
+    window.location.href = "https://translate.google.com";
+    reply = "Opening Google Translate.";
+
+                                                    }
+                                                      else if (command.includes("open calculator")) {
+
+    window.location.href = "https://www.google.com/search?q=calculator";
+    reply = "Opening Calculator.";
+
+                                                      }
+                                                        else if (
+    command.includes("what time") ||
+    command.includes("tell me the time") ||
+    command.includes("current time")
+) {
+
+    let now = new Date();
+
+    let time = now.toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit"
+    });
+
+    reply = "The current time is " + time + ".";
+
+                                                        }
+                                                          else if (
+    command.includes("what date") ||
+    command.includes("today's date") ||
+    command.includes("what is the date")
+) {
+
+    let now = new Date();
+
+    let date = now.toLocaleDateString([], {
+        day: "numeric",
+        month: "long",
+        year: "numeric"
+    });
+
+    reply = "Today is " + date + ".";
+
+                                                          }
+                                                            else if (
+    command.includes("what day") ||
+    command.includes("which day") ||
+    command.includes("day is it")
+) {
+
+    let now = new Date();
+
+    let day = now.toLocaleDateString([], {
+        weekday: "long"
+    });
+
+    reply = "Today is " + day + ".";
+
+                                                            }
+                                                              else if (
+    command.includes("weather") ||
+    command.includes("how is the weather")
+) {
+
+    reply = "Checking the weather.";
+
+    showMessage(reply);
+    jarvisSpeak(reply);
+
+    window.location.href =
+        "https://www.google.com/search?q=weather";
+
+    return;
+                                                              }
+                                                                else if (
+    command.includes("youtube search") ||
+    command.includes("search youtube")
+) {
+
+    let query = command
+        .replace("youtube search", "")
+        .replace("search youtube", "")
+        .trim();
+
+    if (query) {
+        reply = "Searching YouTube for " + query;
+
+        showMessage(reply);
+        jarvisSpeak(reply);
+
+        window.location.href =
+            "https://www.youtube.com/results?search_query=" +
+          encodeURIComponent(query);
+
+        return;
+    }
+
+    reply = "What should I search on YouTube?";
+                                                                }
+                                                                  else if (
+    command.includes("go back") ||
+    command.includes("back")
+) {
+
+    window.history.back();
+    reply = "Going back.";
+
+                                                                  }
+                                                                    else if (
+    command.includes("play music") ||
+    command.includes("play a song") ||
+    command.includes("play song")
+) {
+
+    reply = "Opening music.";
+
+    showMessage(reply);
+    jarvisSpeak(reply);
+
+    window.location.href =
+        "https://music.youtube.com";
+
+    return;
+  }
+                                                                      else if (
+    command.includes("open camera") ||
+    command.includes("camera")
+) {
+
+    reply = "Opening camera.";
+
+    showMessage(reply);
+    jarvisSpeak(reply);
+
+    window.location.href = "https://www.google.com/search?q=camera";
+
+    return;
+                                                                      }
+                                                                        else if (
+    command.includes("set a timer") ||
+    command.includes("timer")
+) {
+
+    reply = "Opening timer.";
+
+    showMessage(reply);
+    jarvisSpeak(reply);
+
+    window.location.href =
+        "https://www.google.com/search?q=timer";
+
+    return;
+              }
+                                                                          else if (
+    command.includes("open settings") ||
+    command.includes("settings")
+) {
+
+    reply = "Opening settings.";
+
+    showMessage(reply);
+    jarvisSpeak(reply);
+
+    window.location.href =
+        "https://www.google.com/search?q=Android+settings";
+
+    return;
+                  }
+                                                                            else if (
+    command.includes("open calculator") ||
+    command.includes("calculator")
+) {
+
+    reply = "Opening Calculator.";
+
+    showMessage(reply);
+    jarvisSpeak(reply);
+
+    window.location.href =
+        "https://www.google.com/search?q=calculator";
+
+    return;
+                                                                            }
+                                                                              else if (
+    command.includes("what is the date") ||
+    command.includes("today's date") ||
+    command.includes("tell me the date")
+) {
+
+    let now = new Date();
+
+    let date = now.toLocaleDateString([], {
+        day: "numeric",
+        month: "long",
+        year: "numeric"
+    });
+
+    reply = "Today is " + date + ".";
+  }
+                                                                                else if (
+    command.includes("what day") ||
+    command.includes("which day") ||
+    command.includes("what day is it")
+) {
+
+    let now = new Date();
+
+    let day = now.toLocaleDateString([], {
+        weekday: "long"
+    });
+
+    reply = "Today is " + day + ".";
+      }
+                                                                                  else if (
+    command.includes("open maps") ||
+    command.includes("open google maps")
+) {
+
+    reply = "Opening Google Maps.";
+
+    showMessage(reply);
+    jarvisSpeak(reply);
+
+    window.location.href =
+        "https://www.google.com/maps";
+
+    return;
+                     }
+                                                                                    else if (command.includes("open pinterest")) {
+
+    reply = "Opening Pinterest.";
+
+    showMessage(reply);
+    jarvisSpeak(reply);
+
+    window.location.href =
+        "https://www.pinterest.com";
+
+    return;
+          }
+                                                                                  
+    
+    else {
+        reply = "Sorry Nick, I don't understand that command.";
+    }
+
+    showMessage(reply);
+    jarvisSpeak(reply);
+  }
+
+
+// SPEECH RECOGNITION
+const SpeechRecognition =
+    window.SpeechRecognition ||
+    window.webkitSpeechRecognition;
+
+
+if(SpeechRecognition){
+
+    const recognition =
+        new SpeechRecognition();
+
+    recognition.lang = "en-US";
+    recognition.continuous = false;
+    recognition.interimResults = false;
+
+
+    micBtn.addEventListener("click",()=>{
+
+        try{
+
+            recognition.start();
+
+            micBtn.classList.add("listening");
+
+            statusText.textContent =
+                "LISTENING...";
+
+        }
+        catch(error){
+
+            console.log(error);
+
+        }
+
+    });
+
+
+    recognition.onresult = function(event){
+
+        const command =
+            event.results[0][0].transcript;
+
+        userText.textContent =
+            "You: " + command;
+
+        processCommand(command);
+
+    };
+
+
+    recognition.onend = function(){
+
+        micBtn.classList.remove("listening");
+
+        statusText.textContent =
+            "SYSTEM READY";
+
+    };
+
+
+    recognition.onerror = function(event){
+
+        micBtn.classList.remove("listening");
+
+        statusText.textContent =
+            "VOICE ERROR";
+
+        jarvisText.textContent =
+            "Microphone or speech recognition error.";
+
+        console.log(event.error);
+
+    };
+
+}
+else{
+
+    statusText.textContent =
+        "VOICE NOT SUPPORTED";
+
+    jarvisText.textContent =
+        "Use a browser that supports Speech Recognition.";
+
+}
+
+
+// STARTUP
+setTimeout(()=>{
+
+    jarvisSpeak(
+        "JARVIS online. Systems ready."
+    );
+
+},1000);
+
+</script>
+
+</body>
+</html>
