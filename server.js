@@ -36,11 +36,11 @@ app.post("/ask", async (req, res) => {
         });
 
     } catch (error) {
-        console.error("JARVIS AI ERROR:", error);
+    console.error("JARVIS AI ERROR:", error);
 
-        res.status(500).json({
-            reply: "AI connection failed."
-        });
+    res.status(500).json({
+        reply: error.message || "AI connection failed."
+    });
     }
 });
 
