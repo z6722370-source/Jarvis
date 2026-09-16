@@ -1,14 +1,14 @@
 import express from "express";
 import cors from "cors";
-import OpenAI from "openai";
+import { GoogleGenAI } from "@google/genai";
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
-const client = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY
+const client = new GoogleGenAI({
+    apiKey: process.env.GEMINI_API_KEY
 });
 
 app.post("/ask", async (req, res) => {
@@ -21,26 +21,28 @@ app.post("/ask", async (req, res) => {
             });
         }
 
-        const response = await client.responses.create({
-            model: "gpt-5-mini",
-            instructions:
-                "You are JARVIS, a concise personal AI assistant. " +
-                "Answer clearly and naturally. " +
-                "The user's name is Nichal. " +
-                "Do not claim to control the phone unless a real tool is connected.",
-            input: message
+        const response = await client.models.generateContent({
+            model: "gemini-2.5-flash",
+            contents: message,
+            config: {
+                systemInstruction:
+                    "You are JARVIS, a concise personal AI assistant. " +
+                    "Answer clearly and naturally. " +
+                    "The user's name is Nichal. " +
+                    "Do not claim to control the phone unless a real tool is connected."
+            }
         });
 
         res.json({
-            reply: response.output_text
+            reply: response.text
         });
 
     } catch (error) {
-    console.error("JARVIS AI ERROR:", error);
+        console.error("JARVIS GEMINI ERROR:", error);
 
-    res.status(500).json({
-        reply: error.message || "AI connection failed."
-    });
+        res.status(500).json({
+            reply: error.message || "Gemini connection failed."
+        });
     }
 });
 
