@@ -21,20 +21,13 @@ app.post("/ask", async (req, res) => {
             });
         }
 
-        const response = await client.models.generateContent({
-            model: "gemini-2.5-flash",
-            contents: message,
-            config: {
-                systemInstruction:
-                    "You are JARVIS, a concise personal AI assistant. " +
-                    "Answer clearly and naturally. " +
-                    "The user's name is Nichal. " +
-                    "Do not claim to control the phone unless a real tool is connected."
-            }
+        const interaction = await client.interactions.create({
+            model: "gemini-3.6-flash",
+            input: message
         });
 
         res.json({
-            reply: response.text
+            reply: interaction.output_text
         });
 
     } catch (error) {
